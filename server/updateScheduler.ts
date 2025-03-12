@@ -4,8 +4,9 @@ import * as fs from 'fs'
 import xml2js from 'xml2js'
 import * as path from 'path'
 import {opml_dir} from "./consts";
+export {scheduleUpdates}
 
-scheduler.schedule("* /30 * * * *", () => {
+const scheduleUpdates = scheduler.schedule("* /30 * * * *", () => {
     const processOPMLFiles = (directory: string) => {
         fs.readdir(directory, (err, files) => {
             if (err) {

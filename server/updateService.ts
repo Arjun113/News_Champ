@@ -14,13 +14,14 @@ const parseMyFeed = async (feedURL: string) => {
 
 
         const feedItems = feed.items.map(async (item) => {
-            const imageURL = extractImageUrl(item)
+            const imageURL = extractImageUrl(item.description)
             const feedItem = new feedModel({
                 title: item.title,
                 description: item.description,
                 imageURL: imageURL,
                 link: item.link,
                 lastBuildDate: feedParentLastBuild,
+                publishedDate: item.pubDate
             });
             await feedItem.save();
         })
