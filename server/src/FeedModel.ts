@@ -12,4 +12,4 @@ const feedSchema = new mongoose.Schema({
     category: {type: String, required: true},
 });
 
-const feedModel = new mongoose.Model(feedSchema);
+const feedModel: mongoose.Model<mongoose.Schema> = new mongoose.Model(feedSchema);

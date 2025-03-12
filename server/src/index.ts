@@ -10,7 +10,6 @@ mongoose.connect(mongoURL)
                 .then(() => {console.log("Connected!")})
                 .catch((err) => {console.error("MongoDB connection failure")})
 
-
 scheduleUpdates();
 
 // Endpoint to fetch feed items, optionally by category
