@@ -1,13 +1,17 @@
-import parser from 'rss-parser';
+import * as parser from 'rss-parser';
 import {feedModel} from "./FeedModel";
 import axios from 'axios';
 
 export {parseMyFeed, extractImageUrl}
 
-const parseMyFeed = async (feedURL) => {
+const parseMyFeed = async (feedURL: string) => {
     const parseFile = new parser();
     try {
         const feed = await parseFile.parseURL(feedURL);
+        const feedOwner = feed.channel.title;
+        const feedParentLink = feed.channel.link;
+        const feedParentLastBuild = feed.channel.lastBuildDate
+
 
         const feedItems = feed.items.map(async (item) => {
             const imageURL = extractImageUrl(item)
@@ -16,6 +20,7 @@ const parseMyFeed = async (feedURL) => {
                 description: item.description,
                 imageURL: imageURL,
                 link: item.link,
+                lastBuildDate: feedParentLastBuild,
             });
             await feedItem.save();
         })
