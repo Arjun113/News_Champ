@@ -7,7 +7,7 @@ import {opml_dir} from "./consts";
 export {scheduleUpdates}
 
 const scheduleUpdates = () => {
-    scheduler.schedule("* /30 * * * *", async () => {
+    scheduler.schedule("*/30 * * * *", async () => {
         const processOPMLFiles = (directory: string) => {
             fs.readdir(directory, (err, files) => {
                 if (err) {
