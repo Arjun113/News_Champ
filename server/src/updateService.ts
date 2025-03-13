@@ -8,21 +8,20 @@ const parseMyFeed = async (feedURL: string, category: string) => {
     const parseFile: parser = new parser();
     try {
         const feed = await parseFile.parseURL(feedURL);
-        const feedOwner: string = feed.channel.title;
-        const feedParentLink: string = feed.channel.link;
-        const feedParentLastBuild: string = feed.channel.lastBuildDate
-
+        const feedOwner: string | undefined = feed.title;
+        const feedParentLink: string | undefined = feed.link;
 
         const feedItems = feed.items.map(async (item) => {
-            const imageURL: string | null = extractImageUrl(item.description)
+            const imageURL: string | null = extractImageUrl(item.content ? item.content : "")
             const feedItem = new feedModel({
                 title: item.title,
-                description: item.description,
+                description: item.contentSnippet ? item.contentSnippet : item.title,
                 imageURL: imageURL,
-                link: item.link,
-                lastBuildDate: feedParentLastBuild,
-                publishedDate: item.pubDate,
+                fullLink: item.link,
+                lastUpdateTime: item.isoDate,
+                publishedDate: item.pubDate ? item.pubDate : item.isoDate,
                 category: category,
+                dbAddTime: Date.now()
             });
             await feedItem.save();
         })

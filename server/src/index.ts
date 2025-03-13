@@ -13,7 +13,7 @@ mongoose.connect(mongoURL)
 scheduleUpdates();
 
 // Endpoint to fetch feed items, optionally by category
-serverApp.get('/api/feed-items', async (req, res) => {
+serverApp.get('/api/feed', async (req, res) => {
     try {
         const { category } = req.query; // Get category from query string
         let feedItems;
