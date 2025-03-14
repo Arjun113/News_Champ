@@ -8,8 +8,8 @@ import { opml_dir } from './consts';
 export { scheduleUpdates };
 
 const scheduleUpdates = () => {
-    // Cron job runs every minute
-    scheduler.schedule('* * * * *', async () => {
+    // Cron job runs every 30 minutes
+    scheduler.schedule('*/5 * * * *', async () => {
         const processOPMLFiles = (directory: string) => {
             fs.readdir(directory, (err, files) => {
                 if (err) {

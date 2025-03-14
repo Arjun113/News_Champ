@@ -3,6 +3,7 @@ import mongoose from 'mongoose'
 import {feedModel} from "./FeedModel";
 import {scheduleUpdates} from "./updateScheduler";
 import {express_port, mongoURL} from "./consts";
+import {dbCleanupScheduler} from "./deleteScheduler";
 
 const serverApp = express();
 
@@ -11,6 +12,7 @@ mongoose.connect(mongoURL)
                 .catch((err) => {console.error("MongoDB connection failure")})
 
 scheduleUpdates();
+dbCleanupScheduler();
 
 // Endpoint to fetch feed items, optionally by category
 serverApp.get('/api/feed', async (req, res) => {
