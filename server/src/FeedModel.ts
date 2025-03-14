@@ -9,6 +9,7 @@ const feedSchema = new mongoose.Schema({
     description: {type: String, required: true},
     publishedDate: {type: Date, default: Date.now},
     lastUpdateTime: {type: Date, default: Date.now},
+    dbAddTime : {type: Date, default: Date.now},
     category: {type: String, required: true},
 });
 
