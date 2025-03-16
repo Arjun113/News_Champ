@@ -37,3 +37,13 @@ serverApp.get('/api/feed', async (req, res) => {
 serverApp.listen(express_port, () => {
     console.log(`Server running on port ${express_port}`);
 });
+
+serverApp.get('/api/categories', async (req, res) => {
+    try {
+        const categories = await feedModel.find().distinct("category");
+        res.json(categories);
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Error fetching categories.'});
+    }
+})
