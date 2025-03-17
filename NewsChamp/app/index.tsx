@@ -1,16 +1,17 @@
-import {Text, View, StyleSheet, SafeAreaView, FlatList, ScrollView, Pressable} from "react-native";
+import {Text, View, StyleSheet, SafeAreaView, FlatList, ScrollView, Pressable, Image} from "react-native";
 import {Colors} from "@/constants/appearances";
 import {Appearance, useColorScheme} from "react-native";
 import {Link} from "expo-router";
 import {fetchPerCategory, fetchAllCategories} from "@/scripts/fetchNews";
 import {useEffect, useState} from "react";
+import {NewsItem} from "@/interfaces/dataFile";
 
 export default function Index() {
     const colourScheme = useColorScheme();
     const [currentCols, setCurrentCols] = useState(Colors.light);  // Default to light theme
     const [categories, setCategories] = useState([]);
     const [currCategory, setCurrCategory] = useState(null);
-    const [data, setData] = useState([]);
+    const [data, setData] = useState<NewsItem[]>();
 
     // Detect Light/Dark Mode
     useEffect(() => {
@@ -46,18 +47,18 @@ export default function Index() {
             {/* Header */}
             <View style={styles.container}>
                 <Text style={styles.text}>News</Text>
-                <Link to="/settings">Settings</Link>
+                <Link href="./settings.tsx">Settings</Link>
             </View>
 
             {/* Scroll for categories */}
-            <ScrollView horizontal style={styles.scrollContainer}>
+            <ScrollView horizontal style={styles.container}>
                 {categories.map((item, index) => (
                     <Pressable
                         key={index}
-                        style={styles.categoryButton}
+                        style={styles.textContainer}
                         onPress={() => setCurrCategory(item)} // Set the selected category
                     >
-                        <Text style={styles.categoryText}>{item}</Text>
+                        <Text style={styles.text}>{item}</Text>
                     </Pressable>
                 ))}
             </ScrollView>
@@ -67,10 +68,10 @@ export default function Index() {
                 <Text>No category selected. Please select a category to view relevant news.</Text>
             ) : (
                 <ScrollView>
-                    {data.length > 0 ? (
-                        data.map((item, index) => (
+                    {data !== undefined && data.length > 0 ? (
+                        data.map((item: NewsItem, index) => (
                             <Pressable key={index} style={styles.newsItem} onPress={() => {/* Add your onPress logic here */}}>
-                                <Image source={{ uri: item.imageUrl }} style={styles.image} />
+                                <Image style={styles.image} src={item.imageURL ? item.imageURL : require("../assets/images/icon.png")}></Image>
                                 <View style={styles.textContainer}>
                                     <Text style={styles.title}>{item.title}</Text>
                                     <Text style={styles.description}>{item.description}</Text>
@@ -86,7 +87,7 @@ export default function Index() {
     );
 }
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
@@ -128,4 +129,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#555',
     },
+    text: {
+        color: 'black'
+    }
 });
