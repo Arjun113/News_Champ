@@ -22,3 +22,14 @@ export const fetchAllCategories = async () => {
         console.log("Check express.js server. Possible malfunctioning GET.")
     }
 }
+
+export const fetchAllNews = async () => {
+    try {
+        const response = await axios.get('/api/feed');
+        return response.data;
+    }
+    catch (error) {
+        console.error(error)
+        console.log("Check express.js server. Possible malfunctioning GET.")
+    }
+}

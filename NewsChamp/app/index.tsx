@@ -1,135 +1,118 @@
-import {Text, View, StyleSheet, SafeAreaView, FlatList, ScrollView, Pressable, Image} from "react-native";
+import React, { useEffect, useState } from 'react';
+import {
+    FlatList,
+    Linking,
+    View,
+    Image,
+    ScrollView
+} from 'react-native';
+import {
+    PaperProvider,
+    Appbar,
+    Searchbar,
+    Chip,
+    Card,
+    Text,
+    ActivityIndicator,
+    MD3LightTheme
+} from 'react-native-paper';
 import {Colors} from "@/constants/appearances";
-import {Appearance, useColorScheme} from "react-native";
 import {Link} from "expo-router";
 import {fetchPerCategory, fetchAllCategories} from "@/scripts/fetchNews";
-import {useEffect, useState} from "react";
 import {NewsItem} from "@/interfaces/dataFile";
+import { WebView } from 'react-native-webview';
+
 
 export default function Index() {
-    const colourScheme = useColorScheme();
-    const [currentCols, setCurrentCols] = useState(Colors.light);  // Default to light theme
-    const [categories, setCategories] = useState([]);
-    const [currCategory, setCurrCategory] = useState(null);
-    const [data, setData] = useState<NewsItem[]>();
 
-    // Detect Light/Dark Mode
-    useEffect(() => {
-        if (colourScheme === 'light') {
-            setCurrentCols(Colors.light);
-        } else {
-            setCurrentCols(Colors.dark);
-        }
-    }, [colourScheme]);
+    const findCategories = async () => {
+        const categories: string[] = await fetchAllCategories();
+        setCategories(categories);
+    }
 
-    // Fetch categories on component mount
-    useEffect(() => {
-        const fetchCategories = async () => {
-            const fetchedCategories = await fetchAllCategories();
-            setCategories(fetchedCategories);
-        };
-        fetchCategories();
-    }, []);
+    // Variable declarations
+    const [theme, setTheme] = useState(MD3LightTheme);
+    const [loading, setLoading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [categories, setCategories] = useState<string[]>([]);
+    const [currCategory, setCurrCategory] = useState<string>('');
+    const [currData, setData] = useState<NewsItem[]>([]);
+    const [categoryCorrespondingData,  setCategoryCorrespondingData] = useState<NewsItem[]>([]);
 
-    // Fetch data when category changes
-    useEffect(() => {
-        const fetchData = async () => {
-            if (currCategory) {
-                const fetchedData = await fetchPerCategory(currCategory);
-                setData(fetchedData);
-            }
-        };
-        fetchData();
-    }, [currCategory]);
+
+    const renderSingleArticle = ( item: NewsItem ) =>(
+        <Card onPress={() => {/* Open link logic here */}} style={{ marginVertical: 8 }}>
+            {item.imageURL && <Card.Cover source={{ uri: item.imageURL }} />}
+            <Card.Title title={item.title} />
+            <Card.Content>
+                <Text variant="bodyMedium">{item.description}</Text>
+            </Card.Content>
+        </Card>
+    );
+
+    const triggerSearch = (query: string) => {
+        const lower = query.toLowerCase();
+        const filtered = currData.filter(item =>
+            item.title.toLowerCase().includes(lower) ||
+            item.category?.toLowerCase().includes(lower) ||
+            item.description?.toLowerCase().includes(lower)
+        );
+        setCategoryCorrespondingData(filtered);
+    };
 
     return (
-        <SafeAreaView>
-            {/* Header */}
-            <View style={styles.container}>
-                <Text style={styles.text}>News</Text>
-                <Link href="./settings.tsx">Settings</Link>
-            </View>
+        <PaperProvider theme={theme}>
+            {/* App Bar */}
+            <Appbar.Header mode="center-aligned">
+                <Appbar.Content title="NewsChamp" titleStyle={{ textAlign: 'center' }} />
+                <Appbar.Action icon="cog-outline" onPress={() => {
+                    // Insert navigation or settings logic here
+                    console.log('Settings button pressed');
+                }} />
+            </Appbar.Header>
 
-            {/* Scroll for categories */}
-            <ScrollView horizontal style={styles.container}>
-                {categories.map((item, index) => (
-                    <Pressable
-                        key={index}
-                        style={styles.textContainer}
-                        onPress={() => setCurrCategory(item)} // Set the selected category
+            {/* Category Chips */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingHorizontal: 10, paddingTop: 10 }}>
+                {categories.map(cat => (
+                    <Chip
+                        key={cat}
+                        selected= {currCategory === cat} // Replace with: category === cat
+                        onPress={() => {
+                            setCurrCategory(cat);
+                            const pullData = async () => {
+                                const data = await fetchPerCategory(cat);
+                                setCategoryCorrespondingData(data);
+                            }
+                        }}
+                        style={{ marginRight: 8 }}
                     >
-                        <Text style={styles.text}>{item}</Text>
-                    </Pressable>
+                        {cat}
+                    </Chip>
                 ))}
             </ScrollView>
 
-            {/* Conditional rendering for category selection */}
-            {currCategory === null ? (
-                <Text>No category selected. Please select a category to view relevant news.</Text>
+            {/* Search Bar */}
+            <Searchbar
+                placeholder="Search articles"
+                value={searchQuery} // Replace with: searchQuery
+                onChangeText={(text) => {
+                    setSearchQuery(text);
+                    triggerSearch(text);
+                }}
+                style={{ margin: 10 }}
+            />
+
+            {/* Loading State */}
+            {loading ? ( // Replace `false` with: loading
+                <ActivityIndicator animating={true} style={{ marginTop: 30 }} />
             ) : (
-                <ScrollView>
-                    {data !== undefined && data.length > 0 ? (
-                        data.map((item: NewsItem, index) => (
-                            <Pressable key={index} style={styles.newsItem} onPress={() => {/* Add your onPress logic here */}}>
-                                <Image style={styles.image} src={item.imageURL ? item.imageURL : require("../assets/images/icon.png")}></Image>
-                                <View style={styles.textContainer}>
-                                    <Text style={styles.title}>{item.title}</Text>
-                                    <Text style={styles.description}>{item.description}</Text>
-                                </View>
-                            </Pressable>
-                        ))
-                    ) : (
-                        <Text>Loading news...</Text>
-                    )}
-                </ScrollView>
+                <FlatList
+                    data={categoryCorrespondingData} // Replace with: filteredArticles or articles
+                    keyExtractor={(item, index) => index.toString()}
+                    renderItem={renderSingleArticle}
+                    contentContainerStyle={{ paddingHorizontal: 10, paddingBottom: 20 }}
+                />
             )}
-        </SafeAreaView>
+        </PaperProvider>
     );
 }
-
-export const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#fff',
-        padding: 10,
-    },
-    loading: {
-        marginTop: 20,
-    },
-    newsItem: {
-        backgroundColor: '#f4f4f4',
-        borderRadius: 15,
-        marginBottom: 15,
-        padding: 15,
-        elevation: 3, // For shadow on Android
-        shadowColor: '#000', // For shadow on iOS
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-    },
-    content: {
-        flexDirection: 'row', // Title and image side by side
-        alignItems: 'center', // Align vertically to the center
-    },
-    image: {
-        width: 100,
-        height: 100,
-        borderRadius: 10,
-        marginRight: 15, // Space between the image and text
-    },
-    textContainer: {
-        flex: 1, // Makes text container take the remaining space
-    },
-    title: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 5,
-    },
-    description: {
-        fontSize: 14,
-        color: '#555',
-    },
-    text: {
-        color: 'black'
-    }
-});
